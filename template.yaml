@@ -1,0 +1,53 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 
+  Backend for Cloud Resume Challenge
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+  DynamoDBTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: VisitorCount
+      PrimaryKey: 
+        Name: id
+        Type: String
+  UpdateCountFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: update_count/
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies: 
+        - DynamoDBCrudPolicy:
+            TableName: VisitorCount
+      Events:
+        HelloWorld:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /update
+            Method: get
+      Environment:
+        Variables:
+          DynamoDBTable: VisitorCount
+
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  UpdateCountApi:
+    Description: "API Gateway endpoint URL for Prod stage for Update Count function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/update/"
+  UpdateCountFunction:
+    Description: "Update Count Lambda Function ARN"
+    Value: !GetAtt UpdateCountFunction.Arn
+  UpdateCountFunctionIamRole:
+    Description: "Implicit IAM Role created for Update Count function"
+    Value: !GetAtt UpdateCountFunctionRole.Arn
+  DynamoDBTable:
+    Description: "DynamoDB table ARN"
+    Value: !GetAtt DynamoDBTable.Arn

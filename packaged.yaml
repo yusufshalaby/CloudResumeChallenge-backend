@@ -1,0 +1,59 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Backend for Cloud Resume Challenge
+Globals:
+  Function:
+    Timeout: 3
+Resources:
+  DynamoDBTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: VisitorCount
+      PrimaryKey:
+        Name: id
+        Type: String
+    Metadata:
+      SamResourceId: DynamoDBTable
+  UpdateCountFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://update-visitor-count-sam/44961c7c43444b2b59009a6014636f8f
+      Handler: app.lambda_handler
+      Runtime: python3.9
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: VisitorCount
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /update
+            Method: get
+      Environment:
+        Variables:
+          DynamoDBTable: VisitorCount
+    Metadata:
+      SamResourceId: UpdateCountFunction
+Outputs:
+  UpdateCountApi:
+    Description: API Gateway endpoint URL for Prod stage for Update Count function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/update/
+  UpdateCountFunction:
+    Description: Update Count Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - UpdateCountFunction
+      - Arn
+  UpdateCountFunctionIamRole:
+    Description: Implicit IAM Role created for Update Count function
+    Value:
+      Fn::GetAtt:
+      - UpdateCountFunctionRole
+      - Arn
+  DynamoDBTable:
+    Description: DynamoDB table ARN
+    Value:
+      Fn::GetAtt:
+      - DynamoDBTable
+      - Arn

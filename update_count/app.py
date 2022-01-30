@@ -9,8 +9,11 @@ def lambda_handler(event, context):
     table = dynamodb.Table(DYNAMODBTABLE)
 
     # Update the count
-    table.update_item(Key={'id': 'resume'}, AttributeUpdates={'visit_count': {'Value': 1, 'Action': 'ADD'}})
-    response = {"visitors":str(table.get_item(Key={'id': 'resume'})['Item']['visit_count'])}
+    response = table.update_item(Key={'id': 'resume'}, 
+                                AttributeUpdates={'visit_count': {'Value': 1, 'Action': 'ADD'}},
+                                ReturnValues='UPDATED_NEW')
+    
+    body = {"visitors":str(response['Attributes']['visit_count'])}
 
     return {
         "statusCode": 200,
@@ -18,6 +21,6 @@ def lambda_handler(event, context):
             "Access-Control-Allow-Origin" : "*",
             "Content-Type": "application/json"
         },
-        "body": json.dumps(response)
+        "body": json.dumps(body)
     }
 

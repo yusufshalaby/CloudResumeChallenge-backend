@@ -1,0 +1,4 @@
+mock
+moto
+pytest
+boto3
